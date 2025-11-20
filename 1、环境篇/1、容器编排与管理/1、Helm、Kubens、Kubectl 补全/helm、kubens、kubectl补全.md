@@ -48,6 +48,7 @@ source /etc/profile.d/bash_completion.sh
 echo "source <(crictl completion bash)" >> ~/.bashrc
 echo "source <(kubectl completion bash)" >> ~/.bashrc
 echo "source <(helm completion bash)" >> ~/.bashrc
+echo "source <(kubeadm completion bash)" >> ~/.bashrc
 
 source ~/.bashrc && su -
 ```

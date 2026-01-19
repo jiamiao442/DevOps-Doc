@@ -257,6 +257,9 @@ net.ipv4.neigh.default.gc_thresh3=8192
 net.ipv4.neigh.default.gc_thresh2=4096
 net.ipv4.tcp_max_syn_backlog=8096
 net.ipv4.tcp_rmem=4096  12582912        16777216
+net.netfilter.nf_conntrack_max=2621440
+net.netfilter.nf_conntrack_buckets=655360
+net.netfilter.nf_conntrack_tcp_timeout_time_wait=60
 EOF
 
 # 应用 sysctl 参数而不重新启动

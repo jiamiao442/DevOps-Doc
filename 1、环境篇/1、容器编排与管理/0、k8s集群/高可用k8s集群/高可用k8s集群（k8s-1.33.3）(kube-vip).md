@@ -101,6 +101,17 @@ getenforce
 setenforce 0
 sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config
 ```
+关闭NetworkManager
+```shell
+systemctl disable NetworkManager && systemctl stop NetworkManager
+```
+或者配置NetworkManager避免干扰calico的网卡路由
+```shell
+cat > /etc/NetworkManager/conf.d/calico.conf << 'EOF'
+[keyfile]
+unmanaged-devices=interface-name:cali*;interface-name:tunl*;interface-name:vxlan.calico;interface-name:vxlan-v6.calico;interface-name:wireguard.cali;interface-name:wg-v6.cali
+EOF
+```
 
 ```shell
 # 5、永久关闭swap(需重启系统生效)

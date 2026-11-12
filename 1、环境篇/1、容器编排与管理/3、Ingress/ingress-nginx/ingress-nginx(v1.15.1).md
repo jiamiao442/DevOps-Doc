@@ -173,8 +173,8 @@ If TLS is enabled for the Ingress, a Secret containing the certificate and key m
   type: kubernetes.io/tls
 root@k8s-master01:~/ingress-nginx# 
 
-#
-r 查看pod运行oot@k8s-master01:~/ingress-nginx# kubectl get pod --namespace ingress-nginx 
+#  查看pod运行
+root@k8s-master01:~/ingress-nginx# kubectl get pod --namespace ingress-nginx 
 NAME                                            READY   STATUS    RESTARTS   AGE
 ingress-nginx-controller-86b6d577c9-kx5nb       1/1     Running   0          2m41s
 ingress-nginx-controller-86b6d577c9-r4w56       1/1     Running   0          2m41s

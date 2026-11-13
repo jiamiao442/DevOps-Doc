@@ -365,8 +365,91 @@ root@k8s-master01:~/kube-prometheus-stack/kube-prometheus-stack# kubectl --names
 ```
 
 
+prometheus监控 etcd，kube-proxy, kube-controller-manager,kube-scheduler 
+
+这四个默认是监听在127.0.0.1上， 修改成 0.0.0.0 即可监听上。
+
+分步解决方案
+
+
+1. 修改 kube-proxy 的监听地址 (端口 10249)
+kube-proxy 以 DaemonSet 方式运行，推荐通过修改 ConfigMap 来调整其 metricsBindAddress。
+
+方法一：修改 ConfigMap（推荐）
+
+执行以下命令编辑 kube-proxy 的配置：
+bash
+kubectl edit cm kube-proxy -n kube-system
+找到 metricsBindAddress 字段，将其值从 127.0.0.1:10249 修改为 0.0.0.0:10249：
+yaml
+kind: KubeProxyConfiguration
+metricsBindAddress: 0.0.0.0:10249
+保存退出后，需要重启 kube-proxy 的 Pod 使配置生效：
+bash
+kubectl rollout restart ds kube-proxy -n kube-system
+
+
+修改控制平面组件的监听地址 (controller-manager & scheduler)
+kube-controller-manager 和 kube-scheduler 通常是以静态 Pod 的形式运行的，需要直接修改节点上的清单文件。
+
+修改 kube-controller-manager (端口 10257)
+
+编辑清单文件：
+bash
+sudo vim /etc/kubernetes/manifests/kube-controller-manager.yaml
+在 command 列表中找到 --bind-address 参数，将其值修改为 0.0.0.0。如果不存在该参数，则添加一行 - --bind-address=0.0.0.0。
+保存后 kubelet 会自动重启该组件，无需额外操作。
+
+```shell
+sed -i 's/--bind-address=127.0.0.1/--bind-address=0.0.0.0/g'  /etc/kubernetes/manifests/kube-controller-manager.yaml
+
+```
+
+修改 kube-scheduler (端口 10259)
+
+编辑清单文件：
+bash
+sudo vim /etc/kubernetes/manifests/kube-scheduler.yaml
+同样，将 --bind-address 参数的值修改为 0.0.0.0，或添加该参数。
+保存后 kubelet 会自动重启组件。
+
+```shell
+sed -i 's/--bind-address=127.0.0.1/--bind-address=0.0.0.0/g'  /etc/kubernetes/manifests/kube-scheduler.yaml
+
+```
+
+修改 etcd 监控端口 2381
+
+```shell
+
+sed -i 's+--listen-metrics-urls=http://127.0.0.1:2381+--listen-metrics-urls=http://0.0.0.0:2381+g' /etc/kubernetes/manifests/etcd.yaml
+
+```
+
+
+快速修改 kube-controller-manager 、kube-scheduler、etcd
+
+```shell
+
+sed -i 's/--bind-address=127.0.0.1/--bind-address=0.0.0.0/g'  /etc/kubernetes/manifests/kube-controller-manager.yaml
+sed -i 's/--bind-address=127.0.0.1/--bind-address=0.0.0.0/g'  /etc/kubernetes/manifests/kube-scheduler.yaml
+sed -i 's+--listen-metrics-urls=http://127.0.0.1:2381+--listen-metrics-urls=http://0.0.0.0:2381+g' /etc/kubernetes/manifests/etcd.yaml
+
+
+```
+
+
+kubelet会自动重启这些容器，过1分钟左右就会恢复正常。
+
+
+![alt text](image.png)
+
 
 # 卸载
+
+```shell 
+
+
 helm uninstall kube-prometheus-stack    --namespace monitoring
 
 ```
